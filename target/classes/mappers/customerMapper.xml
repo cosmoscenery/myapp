@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+	  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	  
+ <mapper namespace="spring.mvc.spring_pj_ict05.dao.CustomerDAO">  <!-- namespace="패키지명.인터페이스" -->
+	
+	<!-- ID 중복확인 처리 -->
+	<select id="useridCheck" parameterType="String" resultType="int">	<!-- resultType이 int이기 때문에 갯수 따라서 COUNT 넣어야함 -->
+		SELECT COUNT(*) FROM mvc_customer_tbl 
+		WHERE user_id = #{strId}
+	</select>
+	
+	<!-- 회원가입 처리 -->
+	<insert id="insertCustomer" parameterType="spring.mvc.spring_pj_ict05.dto.CustomerDTO" ><!-- resultType="int" 입력, 수정, 삭제는 resultType 없음/ 성공, 실패만 있기 때문에 쓰면 오류뜸-->
+		INSERT INTO mvc_customer_tbl(user_id, user_password, user_name, user_birthday, user_address, user_hp, user_email, user_regdate) 
+		VALUES(#{user_id}, #{user_password}, #{user_name}, #{user_birthday}, #{user_address}, #{user_hp}, #{user_email}, #{user_regdate})
+	</insert>
+	
+	<!-- 로그인 처리 / 회원정보 인증(수정, 탈퇴) -->
+	<select id="idPasswordChk" parameterType="java.util.Map" resultType="int">
+		SELECT COUNT(*) FROM mvc_customer_tbl 
+		WHERE user_id= #{strId} AND user_password = #{strPassword}
+	</select>
+	
+	<!-- 회원정보 인증처리 및 탈퇴처리 -->
+	<delete id="deleteCustomer" parameterType="String" >	<!-- 입력, 수정, 삭제는 resultType 안씀 -->
+		DELETE FROM mvc_customer_tbl 
+		WHERE user_id= #{strId}
+	</delete>
+	
+	<!-- 상세페이지 조회 -->
+	<select id="getCustomerDetail" parameterType="String" resultType="spring.mvc.spring_pj_ict05.dto.CustomerDTO">
+		SELECT * FROM mvc_customer_tbl 
+		WHERE user_id= #{strId}
+	</select>
+	
+	<!-- 회원정보 수정처리 -->
+	<update id="updateCustomer" parameterType="spring.mvc.spring_pj_ict05.dto.CustomerDTO" >
+		UPDATE mvc_customer_tbl 
+		SET user_password = #{user_password}, 
+			user_name = #{user_name}, 
+			user_birthday = #{user_birthday}, 
+			user_address = #{user_address}, 
+			user_hp = #{user_hp}, 
+			user_email = #{user_email}, 
+			user_regdate = #{user_regdate} 
+		WHERE user_id = #{user_id}
+	</update>
+</mapper> 

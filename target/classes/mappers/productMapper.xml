@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+	  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	  
+ <mapper namespace="spring.mvc.spring_pj_ict05.dao.ProductDAO">  <!-- namespace="패키지명.인터페이스" -->
+
+<!-- 상품등록 -->
+   <insert id="productInsert" parameterType="spring.mvc.spring_pj_ict05.dto.ProductDTO">
+      INSERT INTO mvc_product_tbl(pdNo, pdName, pdBrand, pdImg, pdCategory, pdContent, pdPrice, pdQuantity, pdStatus, pdIndate)
+      VALUES((SELECT NVL(MAX(pdNO) + 1, 1) FROM mvc_product_tbl), #{pdName}, #{pdBrand}, #{pdImg}, #{pdCategory}, #{pdContent}, #{pdPrice}, #{pdQuantity}, #{pdStatus}, sysdate)
+   </insert>
+   
+<!-- 상품갯수 -->
+	<select id="productCnt" resultType="int">
+		SELECT COUNT(*) FROM mvc_product_tbl
+	</select>
+
+<!-- 상품목록 -->
+	<select id="productList" parameterType="java.util.Map" resultType="spring.mvc.spring_pj_ict05.dto.ProductDTO">
+		SELECT *
+   			FROM
+    		 (SELECT A.*
+     			 , rownum AS rn
+     		 FROM
+		      (SELECT * FROM mvc_product_tbl 
+		        WHERE show = 'Y'
+		        ORDER BY pdNo DESC) A
+		     )
+		WHERE rn BETWEEN #{start} AND #{end}
+	</select>
+	
+<!-- 상품 상세페이지 -->
+	<select id="productDetail" parameterType="int" resultType="spring.mvc.spring_pj_ict05.dto.ProductDTO">
+		SELECT * FROM mvc_product_tbl
+		WHERE pdNo = #{pdNo}
+	</select>
+
+<!-- 상품 수정 -->
+	<update id="productUpdate" parameterType="spring.mvc.spring_pj_ict05.dto.ProductDTO">
+		UPDATE mvc_product_tbl
+		   SET pdName = #{pdName}
+		      ,pdBrand = #{pdBrand}
+		      ,pdImg = #{pdImg}
+		      ,pdCategory = #{pdCategory}
+		      ,pdContent = #{pdContent}
+		      ,pdPrice = #{pdPrice}
+		      ,pdQuantity = #{pdQuantity}
+		      ,pdStatus = #{pdStatus}
+		WHERE pdNo = #{pdNo}
+	</update>
+
+<!-- 상품삭제 -->
+	<update id="productDelete" parameterType="int">
+		UPDATE mvc_product_tbl
+  		 SET show = 'N'
+ 		WHERE pdNo = #{pdNo}
+	</update>
+</mapper> 

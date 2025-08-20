@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+	  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	  
+ <mapper namespace="spring.mvc.spring_pj_ict05.dao.BoardDAO">  <!-- namespace="패키지명.인터페이스" -->
+	
+   <!-- <![CDATA[ 문자데이터 ]]>   
+      => CDATA(character data(문자데이터)를 의미하며, 마크업언어(xml)에서 CDATA로 문자들을 감싸게 되면, 
+         이 문자열들 사이의 데이터는 마크업으로 해석하지 않아야 하는 데이터를 포함한다는 것을 의미한다.
+         CDATA 영역에 작성된 특수문자데이터는 단순한 문자데이터(Character Data)인식하므로
+         XML 파서기가 처리하지 않고, 데이터베이스에 그대로 전달함으로써 에러가 발생하지 않도록 한다.
+         
+         즉 <>와 같은 부등호를 xml 태그로 인지하지 않고, 단순 문자로 인식(부등호로 인식)하도록 한다.
+   	-->
+	
+	<!-- 게시글 목록 -->
+	<select id="boardList" parameterType="java.util.Map" resultType="spring.mvc.spring_pj_ict05.dto.BoardDTO">
+		<![CDATA[
+		SELECT * FROM
+			(SELECT A.*
+			 , ROWNUM AS RN
+				FROM
+				(SELECT * FROM mvc_board_table
+					WHERE b_show = 'Y' 	
+					ORDER BY b_num DESC) A    )
+		WHERE RN >= #{start} 
+		  AND RN <= #{end}
+		  ]]>
+		<!-- WHERE RN BETWEEN #{start} AND #{end} -->
+	</select>
+
+	<!-- 게시글 갯수 구하기 -->
+	<select id="boardCnt" resultType="int">
+		SELECT COUNT(*) FROM mvc_board_table WHERE b_show='Y'
+	</select>
+	
+	<!-- 조회수 증가 -->
+	<update id="plusReadCnt" parameterType="int">
+		 UPDATE mvc_board_table
+		 SET b_readCnt = b_readCnt + 1
+		 WHERE b_num = #{board_num}
+	</update>
+	
+	<!-- 게시글 상세 화면 처리 -->
+	<select id="getBoardDetail" parameterType="int" resultType="spring.mvc.spring_pj_ict05.dto.BoardDTO">
+		SELECT * FROM mvc_board_table
+		WHERE b_num = #{board_num}
+	</select>
+	
+	
+	<!-- 게시글 수정삭제 버튼 클릭시 - 비밀번호 인증 처리 -->
+	<select id="password_chk" parameterType="java.util.Map" resultType="int">
+		SELECT count(*) AS CNT FROM mvc_board_table
+		WHERE b_num = #{num}  
+		AND b_password = #{password}
+	</select>
+	
+	<!-- 게시글 수정 처리 -->
+	<update id="updateBoard" parameterType="spring.mvc.spring_pj_ict05.dto.BoardDTO">
+		UPDATE mvc_board_table
+		SET b_password = #{b_password}
+		, b_title = #{b_title}
+		, b_content = #{b_content}
+		WHERE b_num = #{b_num}
+	</update>
+	
+	<!-- 게시글 삭제 처리 -->
+	<update id="deleteBoard" parameterType="int">
+		UPDATE mvc_board_table 
+		SET b_show = 'N' 
+		WHERE b_num = #{board_num}
+	</update>
+	
+	<!-- 게시글 작성 처리 -->
+	<insert id="insertBoard" parameterType="spring.mvc.spring_pj_ict05.dto.BoardDTO">
+		INSERT INTO mvc_board_table(b_num, b_title, b_content, b_writer, b_password, b_readCnt, b_regDate, b_comment_count)
+		VALUES ((SELECT NVL(MAX(b_num)+1, 1) FROM mvc_board_table), #{b_title}, #{b_content}, #{b_writer}, #{b_password}, 0, sysdate, 0)
+	</insert>
+	
+	<!-- 댓글 작성 처리 -->
+	<insert id="insertComment" parameterType="spring.mvc.spring_pj_ict05.dto.BoardCommentDTO">
+		INSERT INTO mvc_comment_tbl(c_comment_num, c_board_num, c_writer, c_content, c_regDate)
+		VALUES((SELECT NVL(MAX(c_comment_num)+1, 1) FROM mvc_comment_tbl), #{c_board_num}, #{c_writer}, #{c_content}, sysdate)
+	</insert>
+	
+	<!-- 댓글 목록 -->
+	<select id="commentList" parameterType="int" resultType="spring.mvc.spring_pj_ict05.dto.BoardCommentDTO" >
+		SELECT * FROM
+		(SELECT A.*
+		, ROWNUM AS RN FROM 
+			(SELECT * FROM mvc_comment_tbl c,
+		    	  			mvc_board_table b
+		 	WHERE b.B_NUM = c.c_board_num
+		 	AND b_num = #{board_num}
+		 	ORDER BY c_comment_num DESC) A )
+		ORDER BY RN desc
+	</select>
+	
+	
+</mapper> 
